@@ -17,14 +17,44 @@ struct VoWiFiUpstreamProxyManagerView: View {
         NavigationStack {
             Group {
                 if store.configurations.isEmpty {
-                    ContentUnavailableView(
-                        L10n.tr("没有上游代理"),
-                        systemImage: "network.badge.shield.half.filled",
-                        description: Text(verbatim: L10n.tr("添加支持 UDP ASSOCIATE 的 SOCKS5 代理。"))
-                    )
+                    ContentUnavailableView {
+                        Label(
+                            L10n.tr("没有上游代理"),
+                            systemImage: "network.badge.shield.half.filled"
+                        )
+                    } description: {
+                        Text(verbatim: L10n.tr("添加支持 UDP ASSOCIATE 的 SOCKS5 代理，或直接粘贴代理链接。"))
+                    } actions: {
+                        Button {
+                            showingLinkSheet = true
+                        } label: {
+                            Label(L10n.tr("从链接添加"), systemImage: "link")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        Button { editing = .newDraft() } label: {
+                            Label(L10n.tr("添加代理"), systemImage: "plus")
+                        }
+                    }
                 } else {
                     List(store.configurations) { configuration in
                         row(configuration)
+                    }
+                    .safeAreaInset(edge: .bottom) {
+                        HStack {
+                            Button {
+                                showingLinkSheet = true
+                            } label: {
+                                Label(L10n.tr("从链接添加"), systemImage: "link")
+                            }
+                            .buttonStyle(.borderedProminent)
+                            Spacer()
+                            Button { editing = .newDraft() } label: {
+                                Label(L10n.tr("添加代理"), systemImage: "plus")
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(.bar)
                     }
                 }
             }

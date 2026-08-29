@@ -1653,3 +1653,4 @@
 "添加" = "追加";
 "无法解析该链接，请检查格式（支持 hysteria2://、socks5://、http://）" = "リンクを解析できません。対応形式: hysteria2://、socks5://、http://";
 "hysteria2 将通过本机 mihomo 转换为 SOCKS5 使用" = "hysteria2はローカルのmihomo経由でSOCKS5として使用されます";
+"添加支持 UDP ASSOCIATE 的 SOCKS5 代理，或直接粘贴代理链接。" = "UDP ASSOCIATE 対応の SOCKS5 プロキシを追加するか、プロキシリンクを直接貼り付けます。";
