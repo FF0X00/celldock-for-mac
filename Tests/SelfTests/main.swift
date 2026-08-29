@@ -3852,7 +3852,91 @@ do {
         // Expected.
     }
 
-    print("CellDock self-tests passed (calls, PDU/UDH, SOCKS5, VoWiFi, buffering, storage, merge).")
+    // --- Telegram 短信转发格式 ---
+    let tgMessage = SMSMessage(
+        id: "tg-format-test",
+        moduleID: nil,
+        modemIndices: [],
+        modemStorage: nil,
+        modemReferences: nil,
+        sender: "+85212345678",
+        body: "验证码 123456，5 分钟内有效",
+        timestamp: Date(timeIntervalSince1970: 1_752_000_000),
+        rawPDUs: [],
+        isRead: false,
+        readAt: nil,
+        firstSeenAt: Date(timeIntervalSince1970: 1_752_000_000),
+        direction: nil,
+        deliveryState: nil,
+        deliveryDetail: nil
+    )
+    let tgText = TelegramSMSForwarderFormatter.format(tgMessage)
+    try expect(tgText.contains("📩"), "telegram forward missing header")
+    try expect(tgText.contains("+85212345678"), "telegram forward missing sender")
+    try expect(tgText.contains("123456"), "telegram forward missing body")
+    try expect(tgText.contains("2025"), "telegram forward missing date")
+
+    let tgEmpty = SMSMessage(
+        id: "tg-empty",
+        moduleID: nil,
+        modemIndices: [],
+        modemStorage: nil,
+        modemReferences: nil,
+        sender: "",
+        body: "",
+        timestamp: Date(),
+        rawPDUs: [],
+        isRead: false,
+        readAt: nil,
+        firstSeenAt: Date(),
+        direction: nil,
+        deliveryState: nil,
+        deliveryDetail: nil
+    )
+    try expect(
+        TelegramSMSForwarderFormatter.format(tgEmpty).contains("（空）"),
+        "telegram forward should mark empty body"
+    )
+
+    // 模块备注名（有映射用映射，无映射回退 rawValue）
+    var tgModuleMessage = tgMessage
+    tgModuleMessage.moduleID = .compatibilityPrimary
+    let namedText = TelegramSMSForwarderFormatter.format(
+        tgModuleMessage,
+        moduleDisplayNames: [.compatibilityPrimary: "打卡机"]
+    )
+    try expect(namedText.contains("模块: 打卡机"), "telegram forward should use module display name")
+    let fallbackText = TelegramSMSForwarderFormatter.format(tgModuleMessage)
+    try expect(
+        fallbackText.contains("模块: \(CellularModuleID.compatibilityPrimary.rawValue)"),
+        "telegram forward should fall back to raw module id"
+    )
+
+    // --- 代理链接解析（hysteria2 / socks5） ---
+    if let hy2 = ProxyLinkParser.parse(
+        "hysteria2://7TkEa7n3JaTKtdLGGb2wNw==@132.145.76.136:14193?insecure=1&sni=www.bing.com#UK"
+    ) {
+        try expect(hy2.scheme == "hysteria2", "hy2 scheme")
+        try expect(hy2.host == "132.145.76.136", "hy2 host")
+        try expect(hy2.port == 14193, "hy2 port")
+        try expect(hy2.name == "UK", "hy2 name from fragment")
+        try expect(hy2.rawAuthentication == "7TkEa7n3JaTKtdLGGb2wNw==", "hy2 raw auth preserved")
+        try expect(hy2.parameters["insecure"] == "1", "hy2 insecure param")
+        try expect(hy2.parameters["sni"] == "www.bing.com", "hy2 sni param")
+    } else {
+        throw SelfTestFailure.failed("hysteria2 link should parse")
+    }
+    if let socks = ProxyLinkParser.parse("socks5://user:pass@1.2.3.4:1080#MyProxy") {
+        try expect(socks.scheme == "socks5", "socks scheme")
+        try expect(socks.host == "1.2.3.4" && socks.port == 1080, "socks endpoint")
+        try expect(socks.name == "MyProxy", "socks name")
+        try expect(socks.username == "user" && socks.password == "pass", "socks credentials")
+    } else {
+        throw SelfTestFailure.failed("socks5 link should parse")
+    }
+    try expect(ProxyLinkParser.parse("ftp://1.2.3.4:21") == nil, "unsupported scheme rejected")
+
+    print("CellDock self-tests passed (calls, PDU/UDH, SOCKS5, VoWiFi, buffering, storage, merge, telegram-forward).")
 } catch {
     fputs("Self-test failed: \(error)\n", stderr)
     exit(1)

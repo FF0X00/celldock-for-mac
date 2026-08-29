@@ -55,6 +55,9 @@ struct CellDockSettingsView: View {
     @State private var didResolveInitialCategory = false
     @State private var isConfirmingVerificationAutoDelete = false
     @State private var isConfirmingAutomaticRecording = false
+    @ObservedObject private var smsForwarder = TelegramSMSForwarder.shared
+    @State private var smsForwarderToken = ""
+    @State private var smsForwarderFeedback: (Bool, String)?
     @State private var soundImportError: String?
     @State private var microphoneAuthorizationStatus =
         AVCaptureDevice.authorizationStatus(for: .audio)
@@ -546,6 +549,86 @@ struct CellDockSettingsView: View {
                         systemImage: "exclamationmark.triangle.fill",
                         color: .orange
                     )
+
+                    Divider().padding(.vertical, 4)
+
+                    settingRow(
+                        title: L10n.tr("Telegram 通知"),
+                        detail: L10n.tr("收到新短信时通过 Bot 推送通知")
+                    ) {
+                        Toggle("Telegram 通知", isOn: Binding(
+                            get: { smsForwarder.isEnabled },
+                            set: { smsForwarder.setEnabled($0) }
+                        ))
+                        .labelsHidden()
+                        .toggleStyle(.adaptiveGlass)
+                    }
+
+                    if smsForwarder.isEnabled {
+                        VStack(alignment: .leading, spacing: 10) {
+                            SecureField(
+                                L10n.tr("Bot Token（在 @BotFather 创建机器人后获取）"),
+                                text: $smsForwarderToken
+                            )
+                            .textFieldStyle(.roundedBorder)
+                            .onAppear {
+                                if smsForwarderToken.isEmpty {
+                                    smsForwarderToken = smsForwarder.botToken ?? ""
+                                }
+                            }
+
+                            HStack(spacing: 10) {
+                                TextField(
+                                    L10n.tr("Chat ID（数字，机器人对话后向 @userinfobot 查询）"),
+                                    text: Binding(
+                                        get: { smsForwarder.chatID },
+                                        set: { smsForwarder.setChatID($0) }
+                                    )
+                                )
+                                .textFieldStyle(.roundedBorder)
+
+                                Button(L10n.tr("保存 Token")) {
+                                    do {
+                                        try smsForwarder.setBotToken(smsForwarderToken)
+                                        smsForwarderFeedback = (
+                                            true,
+                                            L10n.tr("Token 已保存到钥匙串")
+                                        )
+                                    } catch {
+                                        smsForwarderFeedback = (false, error.localizedDescription)
+                                    }
+                                }
+                                .adaptiveGlassButton()
+                                .controlSize(.small)
+                            }
+
+                            HStack(spacing: 10) {
+                                Button(L10n.tr("发送测试消息")) {
+                                    smsForwarderFeedback = nil
+                                    smsForwarder.sendTestMessage { result in
+                                        switch result {
+                                        case .success:
+                                            smsForwarderFeedback = (true, L10n.tr("测试消息已发送 ✓"))
+                                        case .failure(let error):
+                                            smsForwarderFeedback = (false, error.localizedDescription)
+                                        }
+                                    }
+                                }
+                                .adaptiveGlassButton()
+                                .controlSize(.small)
+                                .disabled(!smsForwarder.isFullyConfigured)
+
+                                if let feedback = smsForwarderFeedback {
+                                    Text(feedback.1)
+                                        .font(.caption)
+                                        .foregroundStyle(feedback.0 ? Color.green : Color.red)
+                                }
+                            }
+                        }
+                        .padding(.top, 6)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 10)
+                    }
                 }
                 .padding(16)
             }

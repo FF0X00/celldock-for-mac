@@ -7,11 +7,17 @@ struct VoWiFiUpstreamProxyConfiguration: Codable, Identifiable, Equatable, Senda
     var port: UInt16
     var isEnabled: Bool
     var authentication: Authentication
+    /// 传输协议："socks5"（默认，nil 同）| "hysteria2"（经本地 mihomo 子进程转为 SOCKS5）
+    var transport: String? = nil
+    /// 原始代理链接（如 hysteria2://...），仅作展示与溯源
+    var link: String? = nil
 
     enum Authentication: Codable, Equatable, Sendable {
         case none
         case usernamePassword(username: String)
     }
+
+    var isHysteria2: Bool { transport == "hysteria2" }
 
     static func newDraft() -> Self {
         Self(

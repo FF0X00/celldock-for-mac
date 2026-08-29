@@ -6,6 +6,7 @@ struct VoWiFiUpstreamProxyManagerView: View {
     @ObservedObject private var store: VoWiFiUpstreamProxyStore
     @State private var editing: VoWiFiUpstreamProxyConfiguration?
     @State private var localError: String?
+    @State private var showingLinkSheet = false
 
     init(controller: VoWiFiController) {
         self.controller = controller
@@ -38,6 +39,11 @@ struct VoWiFiUpstreamProxyManagerView: View {
                     }
                     .accessibilityIdentifier("VoWiFiAddUpstreamProxy")
                 }
+                ToolbarItem(placement: .primaryAction) {
+                    Button { showingLinkSheet = true } label: {
+                        Label(L10n.tr("从链接添加"), systemImage: "link")
+                    }
+                }
             }
         }
         .frame(minWidth: 620, minHeight: 430)
@@ -55,6 +61,28 @@ struct VoWiFiUpstreamProxyManagerView: View {
                 }
             )
         }
+        .sheet(isPresented: $showingLinkSheet) {
+            VoWiFiUpstreamProxyLinkSheetView { parsed, password in
+                let configuration = VoWiFiUpstreamProxyConfiguration(
+                    id: UUID(),
+                    name: parsed.name,
+                    host: parsed.host,
+                    port: parsed.port,
+                    isEnabled: true,
+                    authentication: (parsed.username != nil || parsed.password != nil)
+                        ? .usernamePassword(username: parsed.username ?? "")
+                        : .none,
+                    transport: parsed.scheme == "hysteria2" ? "hysteria2" : nil,
+                    link: parsed.scheme == "hysteria2" ? parsed.rawLink : nil
+                )
+                do {
+                    try store.save(configuration, password: parsed.password)
+                    showingLinkSheet = false
+                } catch {
+                    localError = error.localizedDescription
+                }
+            }
+        }
         .alert(L10n.tr("无法保存代理"), isPresented: Binding(
             get: { localError != nil },
             set: { if !$0 { localError = nil } }
@@ -71,8 +99,17 @@ struct VoWiFiUpstreamProxyManagerView: View {
                 .fill(configuration.isEnabled ? Color.green : Color.secondary)
                 .frame(width: 8, height: 8)
             VStack(alignment: .leading, spacing: 3) {
-                Text(verbatim: configuration.name.isEmpty ? configuration.endpointDescription : configuration.name)
-                    .font(.headline)
+                HStack(spacing: 6) {
+                    Text(verbatim: configuration.name.isEmpty ? configuration.endpointDescription : configuration.name)
+                        .font(.headline)
+                    if configuration.isHysteria2 {
+                        Text("hysteria2")
+                            .font(.caption2.weight(.semibold))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Color.accentColor.opacity(0.15), in: Capsule())
+                    }
+                }
                 Text(verbatim: configuration.endpointDescription)
                     .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
@@ -111,6 +148,65 @@ struct VoWiFiUpstreamProxyManagerView: View {
     private func isProbing(_ id: UUID) -> Bool {
         if case .probing = store.probeStates[id] { return true }
         return false
+    }
+}
+
+/// 粘贴代理链接（hysteria2://、socks5://、http:// 等）直接添加
+private struct VoWiFiUpstreamProxyLinkSheetView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var linkText = ""
+    let onAdd: (ParsedProxyLink, String?) -> Void
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section(L10n.tr("代理链接")) {
+                    TextField("hysteria2://…", text: $linkText, axis: .vertical)
+                        .lineLimit(3...6)
+                        .font(.body.monospaced())
+                        .accessibilityIdentifier("VoWiFiProxyLinkInput")
+                }
+                if let parsed = parsedLink {
+                    Section(L10n.tr("解析结果")) {
+                        LabeledContent(L10n.tr("类型"), value: parsed.scheme)
+                        LabeledContent(L10n.tr("名称"), value: parsed.name)
+                        LabeledContent(L10n.tr("服务器"), value: "\(parsed.host):\(parsed.port)")
+                        if let username = parsed.username, !username.isEmpty {
+                            LabeledContent(L10n.tr("用户名"), value: username)
+                        }
+                        if parsed.scheme == "hysteria2" {
+                            Text(L10n.tr("hysteria2 将通过本机 mihomo 转换为 SOCKS5 使用"))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } else if !linkText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text(L10n.tr("无法解析该链接，请检查格式（支持 hysteria2://、socks5://、http://）"))
+                        .foregroundStyle(.red)
+                }
+            }
+            .formStyle(.grouped)
+            .navigationTitle(L10n.tr("从链接添加"))
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(L10n.tr("取消")) { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(L10n.tr("添加"), action: add)
+                        .disabled(parsedLink == nil)
+                }
+            }
+        }
+        .frame(width: 520, height: 430)
+    }
+
+    private var parsedLink: ParsedProxyLink? {
+        ProxyLinkParser.parse(linkText)
+    }
+
+    private func add() {
+        guard let parsed = parsedLink else { return }
+        onAdd(parsed, parsed.password)
     }
 }
 

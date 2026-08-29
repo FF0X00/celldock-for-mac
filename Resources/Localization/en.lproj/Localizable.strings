@@ -1639,3 +1639,20 @@
 "打开完整通话页面" = "Open full call view";
 "收起通话控制" = "Collapse call controls";
 "双击打开完整通话页面" = "Double-click to open the full call view";
+
+// SMS → Telegram 转发
+"Telegram 通知" = "Telegram Notifications";
+"收到新短信时通过 Bot 推送通知" = "Push notifications via bot when new SMS arrives";
+"Bot Token（在 @BotFather 创建机器人后获取）" = "Bot Token (create a bot with @BotFather)";
+"Chat ID（数字，机器人对话后向 @userinfobot 查询）" = "Chat ID (numeric; ask @userinfobot after messaging your bot)";
+"保存 Token" = "Save Token";
+"Token 已保存到钥匙串" = "Token saved to Keychain";
+"发送测试消息" = "Send Test Message";
+"测试消息已发送 ✓" = "Test message sent ✓";
+
+"从链接添加" = "Add from Link";
+"代理链接" = "Proxy Link";
+"解析结果" = "Parsed Result";
+"添加" = "Add";
+"无法解析该链接，请检查格式（支持 hysteria2://、socks5://、http://）" = "Could not parse this link. Supported: hysteria2://, socks5://, http://";
+"hysteria2 将通过本机 mihomo 转换为 SOCKS5 使用" = "hysteria2 will run through a local mihomo instance as SOCKS5";

@@ -76,6 +76,7 @@ final class VoWiFiUpstreamProxyStore: ObservableObject {
         routes = defaults.data(forKey: routesKey).flatMap {
             try? JSONDecoder().decode([String: VoWiFiUpstreamRoute].self, from: $0)
         } ?? [:]
+        Hysteria2ProxyService.shared.sync(with: configurations)
     }
 
     func route(for moduleIMEI: String) -> VoWiFiUpstreamRoute {
@@ -94,6 +95,20 @@ final class VoWiFiUpstreamProxyStore: ObservableObject {
             throw VoWiFiUpstreamProxyError.unavailable
         }
         guard config.isEnabled else { throw VoWiFiUpstreamProxyError.disabled }
+        // hysteria2 条目经本地 mihomo 子进程转换为 SOCKS5（无需认证）
+        if config.isHysteria2 {
+            guard let localPort = Hysteria2ProxyService.shared.localPort(for: config.id) else {
+                throw VoWiFiUpstreamProxyError.unavailable
+            }
+            return VoWiFiUpstreamProxySnapshot(
+                id: config.id,
+                name: config.name,
+                host: "127.0.0.1",
+                port: localPort,
+                username: nil,
+                password: nil
+            )
+        }
         let username: String?
         let password: String?
         switch config.authentication {
@@ -132,6 +147,7 @@ final class VoWiFiUpstreamProxyStore: ObservableObject {
             }
         }
         try persistConfigurations()
+        Hysteria2ProxyService.shared.sync(with: configurations)
     }
 
     func delete(_ id: UUID) throws {
@@ -146,6 +162,7 @@ final class VoWiFiUpstreamProxyStore: ObservableObject {
         try credentials.deletePassword(for: id)
         try persistConfigurations()
         try persistRoutes()
+        Hysteria2ProxyService.shared.sync(with: configurations)
     }
 
     func setProbeState(_ state: VoWiFiUpstreamProbeState, for id: UUID) {

@@ -1636,3 +1636,20 @@
 "打开完整通话页面" = "Ouvrir la vue d’appel complète";
 "收起通话控制" = "Réduire les commandes d’appel";
 "双击打开完整通话页面" = "Double-cliquez pour ouvrir la vue d’appel complète";
+
+// SMS → Telegram 转发
+"Telegram 通知" = "Notifications Telegram";
+"收到新短信时通过 Bot 推送通知" = "Notifications via bot à la réception de SMS";
+"Bot Token（在 @BotFather 创建机器人后获取）" = "Token du bot (créez un bot avec @BotFather)";
+"Chat ID（数字，机器人对话后向 @userinfobot 查询）" = "Chat ID (numérique ; demandez à @userinfobot après avoir écrit au bot)";
+"保存 Token" = "Enregistrer le Token";
+"Token 已保存到钥匙串" = "Token enregistré dans le Trousseau";
+"发送测试消息" = "Envoyer un message de test";
+"测试消息已发送 ✓" = "Message de test envoyé ✓";
+
+"从链接添加" = "Ajouter depuis un lien";
+"代理链接" = "Lien du proxy";
+"解析结果" = "Résultat";
+"添加" = "Ajouter";
+"无法解析该链接，请检查格式（支持 hysteria2://、socks5://、http://）" = "Impossible d'analyser ce lien. Formats pris en charge : hysteria2://, socks5://, http://";
+"hysteria2 将通过本机 mihomo 转换为 SOCKS5 使用" = "hysteria2 sera utilisé en SOCKS5 via une instance mihomo locale";

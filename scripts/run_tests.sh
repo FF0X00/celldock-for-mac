@@ -61,6 +61,7 @@ swiftc \
   "$ROOT/Sources/CellDock/SMSPDUDecoder.swift" \
   "$ROOT/Sources/CellDock/SMSPDUEncoder.swift" \
   "$ROOT/Sources/CellDock/SMSVerificationCode.swift" \
+  "$ROOT/Sources/CellDock/TelegramSMSForwarder.swift" \
   "$ROOT/Sources/CellDock/SOCKSProtocol.swift" \
   "$ROOT/Sources/CellDock/BoundSocket.swift" \
   "$ROOT/Sources/CellDock/SOCKSDNSResolver.swift" \
@@ -68,6 +69,8 @@ swiftc \
   "$ROOT/Sources/CellDock/VoWiFiRuntimeModels.swift" \
   "$ROOT/Sources/CellDock/VoWiFiRuntimeControl.swift" \
   "$ROOT/Sources/CellDock/VoWiFiUpstreamProxyModels.swift" \
+  "$ROOT/Sources/CellDock/ProxyLinkParser.swift" \
+  "$ROOT/Sources/CellDock/Hysteria2ProxyService.swift" \
   "$ROOT/Sources/CellDock/VerificationMessageAutoDelete.swift" \
   "$ROOT/Tests/SelfTests/main.swift" \
   -o "$ROOT/.build/self-tests/CellDockSelfTests"

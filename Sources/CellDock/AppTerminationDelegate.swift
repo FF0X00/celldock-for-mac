@@ -28,6 +28,7 @@ final class AppTerminationDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         menuBarPanelController?.stop()
+        Hysteria2ProxyService.shared.stopAll()
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {

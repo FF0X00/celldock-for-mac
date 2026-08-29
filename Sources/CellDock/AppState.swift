@@ -950,6 +950,12 @@ final class AppState: ObservableObject {
             scheduleVerificationAutoDelete()
         }
         guard !isInitialSync else { return }
+        if !newMessages.isEmpty {
+            let moduleNames = Dictionary(
+                uniqueKeysWithValues: cellularModules.map { ($0.id, $0.displayName) }
+            )
+            TelegramSMSForwarder.shared.forward(newMessages, moduleDisplayNames: moduleNames)
+        }
         for message in newMessages {
             alertSounds.playMessageAlert()
             NotificationService.shared.postNewMessage(
