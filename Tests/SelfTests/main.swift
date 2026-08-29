@@ -2076,8 +2076,8 @@ do {
         "unknown module unexpectedly had a cellular preference"
     )
     try expect(
-        CellularNetworkMode.defaultConnectionMode == .standby,
-        "a new cellular module no longer defaults to keeping its connection"
+        CellularNetworkMode.defaultConnectionMode == .off,
+        "a new cellular module no longer defaults to being fully off"
     )
     cellularPreferences.setPreferredMode(.standby, forModule: "867075070123456")
     cellularPreferences.setPreferredMode(.preferred, forModule: "867075070654321")
@@ -2305,9 +2305,9 @@ do {
             currentModes: [moduleTwoID: .preferred],
             fallback: { _ in .defaultConnectionMode }
         ) == [
-            moduleOneID: .standby,
+            moduleOneID: .off,
             moduleTwoID: .preferred,
-            moduleThreeID: .standby,
+            moduleThreeID: .off,
         ],
         "unknown cellular modules were not normalized to the default connection mode"
     )

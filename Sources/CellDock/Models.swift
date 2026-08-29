@@ -618,7 +618,10 @@ enum CellularNetworkPresentationPolicy {
 }
 
 extension CellularNetworkMode {
-    static let defaultConnectionMode: CellularNetworkMode = .standby
+    /// The mode assumed for a cellular module that has never been configured.
+    /// Fully off: a newly inserted module must not seize or hold the network
+    /// until the user explicitly opts in.
+    static let defaultConnectionMode: CellularNetworkMode = .off
 
     var localizedTitle: String {
         switch self {
